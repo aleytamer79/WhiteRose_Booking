@@ -480,9 +480,9 @@
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-widest text-rose-black mb-2">Room Type *</label>
                             <div class="grid grid-cols-3 gap-2" id="room-options">
-                                <button onclick="selectRoom(this, 'Studio')" class="room-btn py-3 border border-gray-200 text-sm font-medium text-gray-700 hover:border-rose-gold hover:text-rose-gold transition-all rounded-sm">Studio</button>
-                                <button onclick="selectRoom(this, '1 Bedroom')" class="room-btn py-3 border border-gray-200 text-sm font-medium text-gray-700 hover:border-rose-gold hover:text-rose-gold transition-all rounded-sm">1 Bedroom</button>
-                                <button onclick="selectRoom(this, '2 Bedrooms')" class="room-btn py-3 border border-gray-200 text-sm font-medium text-gray-700 hover:border-rose-gold hover:text-rose-gold transition-all rounded-sm">2 Bedrooms</button>
+                                <button type="button" onclick="selectRoom(this, 'Studio')" class="room-btn py-3 border border-gray-200 text-sm font-medium text-gray-700 hover:border-rose-gold hover:text-rose-gold transition-all rounded-sm">Studio</button>
+                                <button type="button" onclick="selectRoom(this, '1 Bedroom')" class="room-btn py-3 border border-gray-200 text-sm font-medium text-gray-700 hover:border-rose-gold hover:text-rose-gold transition-all rounded-sm">1 Bedroom</button>
+                                <button type="button" onclick="selectRoom(this, '2 Bedrooms')" class="room-btn py-3 border border-gray-200 text-sm font-medium text-gray-700 hover:border-rose-gold hover:text-rose-gold transition-all rounded-sm">2 Bedrooms</button>
                             </div>
                         </div>
 
@@ -490,9 +490,9 @@
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-widest text-rose-black mb-2">Number of Guests *</label>
                             <div class="flex items-center gap-4 border border-gray-200 rounded-sm px-4 py-3">
-                                <button onclick="changeGuests(-1)" class="text-gray-400 hover:text-rose-gold transition-colors w-8 h-8 flex items-center justify-center text-xl font-bold select-none">−</button>
+                                <button type="button" onclick="changeGuests(-1)" class="text-gray-400 hover:text-rose-gold transition-colors w-8 h-8 flex items-center justify-center text-xl font-bold select-none">−</button>
                                 <span id="guest-count" class="flex-1 text-center font-serif text-2xl text-rose-black">2</span>
-                                <button onclick="changeGuests(1)" class="text-gray-400 hover:text-rose-gold transition-colors w-8 h-8 flex items-center justify-center text-xl font-bold select-none">+</button>
+                                <button type="button" onclick="changeGuests(1)" class="text-gray-400 hover:text-rose-gold transition-colors w-8 h-8 flex items-center justify-center text-xl font-bold select-none">+</button>
                             </div>
                             <p class="text-xs text-gray-400 mt-1">Maximum 6 guests per apartment</p>
                         </div>
@@ -503,7 +503,7 @@
                         <!-- Action Buttons -->
                         <div class="pt-2 space-y-3">
                             <!-- WhatsApp -->
-                            <button onclick="submitBooking('whatsapp')" class="w-full bg-[#25D366] text-white py-4 rounded-sm hover:bg-[#1db954] transition-colors font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-3 shadow-md">
+                            <button type="button" onclick="submitBooking('whatsapp')" class="w-full bg-[#25D366] text-white py-4 rounded-sm hover:bg-[#1db954] transition-colors font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-3 shadow-md">
                                 <i data-lucide="message-circle" class="w-5 h-5"></i>
                                 Book via WhatsApp
                             </button>
@@ -512,6 +512,11 @@
                                 <i data-lucide="phone" class="w-5 h-5"></i>
                                 Call to Book — 010 00457383
                             </a>
+                            <!-- Book Now — direct submission to Google Sheets -->
+                            <button type="button" id="book-now-btn" onclick="submitBookingDirect()" class="w-full bg-rose-black text-white py-4 rounded-sm hover:bg-gray-900 border border-rose-gold/40 hover:border-rose-gold transition-all font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-3 shadow-md">
+                                <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                                <span id="book-now-label">Book Now</span>
+                            </button>
                         </div>
 
                         <p class="text-center text-xs text-gray-400 pt-1">Your details will be saved for our records.</p>
@@ -646,7 +651,7 @@ function doPost(e) {<br>
         let guestCount = 2;
 
         // ⬇️ PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE after setup
-        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycby8v18YcX9I44O_sTUJSWH0A0sbJl8c7sbRXUH1DEgtnvoahtho-KhcTZH7hl-ycVt9/exec';
+        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwh0gJ5LvaGhMkCWGfbpKrPwBWMwQy2gIY_6YZu3rdjnO4lLtfvLW4mroIDNkcJmq01cg/exec';
 
         window.openBooking = function(roomType, guests) {
             const modal = document.getElementById('booking-modal');
@@ -837,36 +842,66 @@ function doPost(e) {<br>
         });
     </script>
 <script>
-document.getElementById("bookingForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+// Book Now — direct submission to Google Sheets (no WhatsApp / no call required)
+window.submitBookingDirect = function() {
+    const name     = document.getElementById('b-name').value.trim();
+    const phone    = document.getElementById('b-phone').value.trim();
+    const checkin  = document.getElementById('b-checkin').value;
+    const checkout = document.getElementById('b-checkout').value;
+    const errEl    = document.getElementById('b-error');
 
-  fetch("https://script.google.com/macros/s/AKfycbwh0gJ5LvaGhMkCWGfbpKrPwBWMwQy2gIY_6YZu3rdjnO4lLtfvLW4mroIDNkcJmq01cg/exec", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      name: document.getElementById("b-name").value,
-      email: document.getElementById("email").value,
-      phone: document.getElementById("phone").value,
-      room: document.getElementById("room").value,
-      checkin: document.getElementById("checkin").value,
-      checkout: document.getElementById("checkout").value,
-      guests: document.getElementById("guests").value
+    if (!name || !phone || !checkin || !checkout || !selectedRoom) {
+        errEl.classList.remove('hidden');
+        return;
+    }
+    errEl.classList.add('hidden');
+
+    const booking = {
+        timestamp: new Date().toLocaleString('en-GB'),
+        name, phone,
+        room: selectedRoom,
+        guests: guestCount,
+        checkin, checkout,
+        method: 'direct'
+    };
+
+    // Update button to loading state
+    const btn   = document.getElementById('book-now-btn');
+    const label = document.getElementById('book-now-label');
+    btn.disabled = true;
+    label.textContent = 'Sending…';
+
+    // Google Apps Script deployed as Web App (doPost)
+    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwh0gJ5LvaGhMkCWGfbpKrPwBWMwQy2gIY_6YZu3rdjnO4lLtfvLW4mroIDNkcJmq01cg/exec';
+
+    fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',            // Google Apps Script doesn't send CORS headers
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booking)
     })
-  })
-  .then(response => response.text())
-  .then(data => {
-    alert("Booking submitted successfully");
-    document.getElementById("bookingForm").reset();
-  })
-  .catch(error => {
-    alert("Error submitting booking");
-    console.error(error);
-  });
-});
+    .then(() => {
+        // no-cors means we can't read the response, but if no network error the request was received
+        btn.disabled = false;
+        label.textContent = 'Book Now';
+
+        // Show success step
+        document.getElementById('booking-step-1').classList.add('hidden');
+        document.getElementById('booking-step-2').classList.remove('hidden');
+        document.getElementById('success-summary').textContent =
+            `${selectedRoom} · ${guestCount} guest${guestCount > 1 ? 's' : ''} · ${checkin} → ${checkout}`;
+        lucide.createIcons();
+    })
+    .catch(err => {
+        btn.disabled = false;
+        label.textContent = 'Book Now';
+        console.error('Booking error:', err);
+        errEl.textContent = 'Network error — please try WhatsApp or call us.';
+        errEl.classList.remove('hidden');
+    });
+};
 </script>
-<script src="script.js"></script>
 </body>
 </html>
+
 
