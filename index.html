@@ -447,6 +447,7 @@
 
                 <!-- Step 1: Form -->
                 <div id="booking-step-1">
+                    <form id="bookingForm">
                     <h3 class="font-serif text-3xl text-rose-black mb-1">Reserve Your Stay</h3>
                     <p class="text-gray-400 text-sm mb-7">Fill in your details and choose how to reach us.</p>
 
@@ -528,6 +529,7 @@
                     <button onclick="closeBooking()" class="border border-rose-black text-rose-black px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-rose-black hover:text-white transition-colors">
                         Close
                     </button>
+                  </form>
                 </div>
             </div>
         </div>
@@ -703,16 +705,16 @@ function doPost(e) {<br>
                 checkin, checkout, method
             };
 
-            // 1. Send to Google Sheets (if URL configured)
-            if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== 'https://script.google.com/macros/s/AKfycby8v18YcX9I44O_sTUJSWH0A0sbJl8c7sbRXUH1DEgtnvoahtho-KhcTZH7hl-ycVt9/exec') {
-                // Send via URL params GET — works from file:// and any host
+            // 1. Send to Google Sheets via JSONP (matches doGet in Apps Script)
+            if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== 'YOUR_GOOGLE_SCRIPT_URL') {
                 var params = encodeURIComponent(JSON.stringify(booking));
-                var script = document.createElement('script');
-                script.src = GOOGLE_SHEET_URL + '?data=' + params + '&callback=gsCallback';
-                document.head.appendChild(script);
-                setTimeout(function(){ 
-                    if(script.parentNode) script.parentNode.removeChild(script); 
-                }, 5000);
+                var tag = document.createElement('script');
+                tag.src = GOOGLE_SHEET_URL + '?data=' + params + '&callback=gsCallback';
+                tag.onerror = function() { console.log('Sheet: network error'); };
+                document.head.appendChild(tag);
+                setTimeout(function() {
+                    if (tag.parentNode) tag.parentNode.removeChild(tag);
+                }, 8000);
             }
 
             // 2. WhatsApp action
@@ -834,5 +836,37 @@ function doPost(e) {<br>
             lucide.createIcons();
         });
     </script>
+<script>
+document.getElementById("bookingForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  fetch("https://script.google.com/macros/s/AKfycbwh0gJ5LvaGhMkCWGfbpKrPwBWMwQy2gIY_6YZu3rdjnO4lLtfvLW4mroIDNkcJmq01cg/exec", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: document.getElementById("b-name").value,
+      email: document.getElementById("email").value,
+      phone: document.getElementById("phone").value,
+      room: document.getElementById("room").value,
+      checkin: document.getElementById("checkin").value,
+      checkout: document.getElementById("checkout").value,
+      guests: document.getElementById("guests").value
+    })
+  })
+  .then(response => response.text())
+  .then(data => {
+    alert("Booking submitted successfully");
+    document.getElementById("bookingForm").reset();
+  })
+  .catch(error => {
+    alert("Error submitting booking");
+    console.error(error);
+  });
+});
+</script>
+<script src="script.js"></script>
 </body>
 </html>
+
